@@ -5,18 +5,10 @@ green='\033[0;32m'
 yellow='\033[0;33m'
 plain='\033[0m'
 
-cur_dir=$(pwd)
-
-# check root
-[[ $EUID -ne 0 ]] && echo -e "${red}错误：${plain} 必须使用root用户运行此脚本！\n" && exit 1
-
-# 你的仓库
+# 你的仓库根地址
 REPO_URL="https://raw.githubusercontent.com/fyue-dotcom/v2node-stable/main"
 PACKAGE_FILE="v2node-1.7-linux-amd64.tar.gz"
 
-########################
-# 参数解析
-########################
 API_HOST_ARG=""
 NODE_ID_ARG=""
 API_KEY_ARG=""
@@ -24,20 +16,16 @@ API_KEY_ARG=""
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --api-host)
-                API_HOST_ARG="$2"; shift 2 ;;
-            --node-id)
-                NODE_ID_ARG="$2"; shift 2 ;;
-            --api-key)
-                API_KEY_ARG="$2"; shift 2 ;;
-            *)
-                shift ;;
+            --api-host) API_HOST_ARG="$2"; shift 2 ;;
+            --node-id)  NODE_ID_ARG="$2"; shift 2 ;;
+            --api-key)  API_KEY_ARG="$2"; shift 2 ;;
+            *) shift ;;
         esac
     done
 }
 
 install_base() {
-    echo -e "${green}安装依赖...${plain}"
+    echo -e "${green}>>> 安装依赖...${plain}"
     if command -v apt >/dev/null 2>&1; then
         apt update -y
         apt install -y wget curl tar unzip socat ca-certificates
@@ -51,7 +39,7 @@ install_base() {
 generate_v2node_config() {
     mkdir -p /etc/v2node >/dev/null 2>&1
 
-    cat >/etc/v2node/config.json <<EOF
+cat >/etc/v2node/config.json <<EOF
 {
     "Log": {
         "Level": "warning",
@@ -72,19 +60,20 @@ EOF
 
 install_v2node() {
 
-    echo -e "${green}>>> 清理旧安装...${plain}"
+    echo -e "${green}>>> 清理旧版本...${plain}"
     rm -rf /usr/local/v2node
     mkdir -p /usr/local/v2node
     cd /usr/local/v2node
 
-    echo -e "${green}>>> 下载 v2node 1.7 稳定版${plain}"
+    echo -e "${green}>>> 下载你的 v2node 1.7 核心${plain}"
     wget -O v2node.tar.gz "${REPO_URL}/${PACKAGE_FILE}"
+
     if [[ $? -ne 0 ]]; then
-        echo -e "${red}下载失败，请检查仓库是否存在：${PACKAGE_FILE}${plain}"
+        echo -e "${red}下载失败，请检查仓库文件是否存在！${plain}"
         exit 1
     fi
 
-    tar -xzvf v2node.tar.gz
+    tar -xzf v2node.tar.gz
     rm -f v2node.tar.gz
     chmod +x v2node
 
@@ -113,14 +102,14 @@ EOF
     systemctl enable v2node
 }
 
-# ------- 主流程 -------
+# --------------- 主流程 -----------------
 
 parse_args "$@"
 
 if [[ -z "$API_HOST_ARG" || -z "$NODE_ID_ARG" || -z "$API_KEY_ARG" ]]; then
-    echo -e "${red}错误：缺少必要参数！${plain}"
-    echo "正确示例："
-    echo "bash install.sh --api-host https://xxx --node-id 1 --api-key abc123"
+    echo -e "${red}缺少参数！${plain}"
+    echo "示例："
+    echo "bash install.sh --api-host https://xxx --node-id 34 --api-key abc123"
     exit 1
 fi
 
@@ -133,10 +122,11 @@ systemctl restart v2node
 sleep 2
 systemctl status v2node --no-pager
 
-echo -e "${green}>>> 安装 v2node 管理脚本${plain}"
+echo -e "${green}>>> 下载管理脚本${plain}"
 curl -o /usr/bin/v2node -Ls https://raw.githubusercontent.com/fyue-dotcom/v2node-stable/main/v2node.sh
 chmod +x /usr/bin/v2node
-echo -e "${green}安装完成！${plain}"
-echo "查看日志：journalctl -u v2node -f"
-echo "查看版本：v2node version"
 
+echo -e "${green}安装完成！${plain}"
+echo "日志： v2node log"
+echo "配置： v2node config"
+echo "卸载： v2node uninstall"
