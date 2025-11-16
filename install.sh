@@ -133,6 +133,9 @@ systemctl restart v2node
 sleep 2
 systemctl status v2node --no-pager
 
+echo -e "${green}>>> 安装 v2node 管理脚本${plain}"
+curl -o /usr/bin/v2node -Ls https://raw.githubusercontent.com/fyue-dotcom/v2node-stable/main/v2node.sh
+chmod +x /usr/bin/v2node
 echo -e "${green}安装完成！${plain}"
 echo "查看日志：journalctl -u v2node -f"
 echo "查看版本：v2node version"
