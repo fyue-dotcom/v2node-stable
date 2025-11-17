@@ -51,7 +51,7 @@ v2_disable() { systemctl disable $SERVICE; echo "已取消开机自启"; }
 v2_version() { $INSTALL_DIR/v2node version; }
 
 v2_edit_config() {
-    nano $CONFIG_FILE
+    vim $CONFIG_FILE
     echo -e "${green}编辑完成，如需生效： v2node restart${plain}"
 }
 
